@@ -49,6 +49,15 @@ lalu buka <http://localhost:5173>.
 
 `galeri.html` menampilkan semua karakter sekaligus, lengkap dengan tombol untuk mencoba setiap suasana hati dan aksi. Halaman ini berguna saat membuat atau mengubah karakter.
 
+### Chrome Extension (Latar Transparan)
+
+Proyek ini juga berfungsi langsung sebagai **Chrome Extension (Manifest V3)**. Saat waktu istirahat dimulai, penjaga akan duduk di atas halaman web yang sedang kamu buka dengan latar belakang transparan (halaman tetap terlihat, tapi tidak bisa diklik/di-scroll sampai waktu istirahat habis, dan penjaga ikut pindah kalau kamu ganti tab).
+
+1. Buka `chrome://extensions` di Google Chrome / Edge / Brave.
+2. Aktifkan **Developer mode** (Mode pengembang) di pojok kanan atas.
+3. Klik **Load unpacked** (Muat yang belum dikemas), lalu pilih folder repositori ini.
+4. Klik ikon **Pawang Layar** di toolbar browser untuk memilih penjaga, durasi, atau jadwal otomatis.
+
 ### GitHub Pages
 
 Buka **Settings → Pages**, pilih **Deploy from a branch**, lalu pilih branch `main` dan folder `/ (root)`. Situsnya akan tersedia di `https://<username>.github.io/penjagalayar/`.
@@ -56,16 +65,24 @@ Buka **Settings → Pages**, pilih **Deploy from a branch**, lalu pilih branch `
 ## Struktur
 
 ```
-index.html            halaman utama
+index.html            halaman utama (versi web)
 galeri.html           alat bantu: lihat semua karakter dan ekspresinya
-css/style.css
-assets/favicon.svg
+manifest.json         konfigurasi Chrome Extension (Manifest V3)
+css/style.css         gaya halaman utama
+css/guard.css         gaya mode jaga & varian transparan extension
+assets/favicon.svg    ikon vektor & ikon PNG extension (icon-16..128.png)
+assets/suara/         rekaman suara MP3 tiap karakter + daftar.js
 js/core/util.js       namespace PI, helper, eye(), registri karakter
-js/core/audio.js      suara sintetis (PI.SFX)
+js/core/audio.js      suara sintetis & pemutar MP3 (PI.SFX)
 js/core/rig.js        rig animasi: suasana hati, mata, aksi (PI.Rig)
 js/core/stage.js      panggung, gelembung bicara, partikel, elus/sentil
+js/core/guard.js      logika mode jaga (dipakai versi web & extension)
 js/characters/*.js    satu file per karakter
-js/app.js             pengaturan, mode jaga, jadwal
+js/app.js             pengaturan, mode jaga, jadwal (versi web)
+ext/background.js     service worker extension (alarm, sesi, injeksi tab)
+ext/content.js        overlay Shadow DOM transparan di atas halaman web
+ext/popup.html & .js  antarmuka popup extension di toolbar browser
+ext/jaga.html & .js   halaman jaga cadangan untuk tab internal (chrome://)
 ```
 
 Semua script dimuat sebagai `<script defer>` biasa (bukan ES module), supaya `index.html` tetap bisa dibuka langsung dari disk.
