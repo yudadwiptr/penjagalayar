@@ -31,6 +31,7 @@
       return this.rig;
     }
     unmount() { this.hideBubble(); this.slot.innerHTML = ''; this.rig = null; if (this.fxl) this.fxl.innerHTML = ''; }
+    destroy() { this.unmount(); this.active = false; const i = stages.indexOf(this); if (i >= 0) stages.splice(i, 1); }
     say(text, ms) {
       if (!this.bubble || !this.rig) return;
       const b = this.bubble;

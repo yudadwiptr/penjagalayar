@@ -39,7 +39,7 @@
       let done = false;
       const miss = () => { if (done) return; done = true; this.files[key] = 'missing'; synth(); };
       try {
-        const a = new Audio(`assets/suara/${name}.mp3`);
+        const a = new Audio(`${PI.assetBase || ''}assets/suara/${name}.mp3`);
         a.volume = .85;
         a.addEventListener('error', miss, { once: true });
         const p = a.play();

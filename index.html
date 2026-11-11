@@ -10,6 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/guard.css">
 
 <!-- inti -->
 <script src="js/core/util.js" defer></script>
@@ -36,6 +37,7 @@
 <script src="js/characters/ganjar.js" defer></script>
 <script src="js/characters/bahlil.js" defer></script>
 <!-- aplikasi -->
+<script src="js/core/guard.js" defer></script>
 <script src="js/app.js" defer></script>
 </head>
 <body>
@@ -99,28 +101,5 @@
   <button type="button" id="wbCancel">Batal</button>
 </div>
 <div class="toast" id="toast" role="status"></div>
-
-<section class="guard" id="guard" aria-label="Mode jaga">
-  <div class="g-world" id="gWorld">
-    <div class="g-bar"><i id="gProg"></i></div>
-    <header class="g-head">
-      <p class="g-tip" id="gTip"></p>
-      <p class="num" id="clock">05:00</p>
-      <p class="g-who" id="who"></p>
-    </header>
-    <div class="g-stage"><div class="slot" id="gSlot"></div></div>
-    <div class="bubble" id="gBubble" aria-live="polite"></div>
-    <div class="fx-layer" id="gFx"></div>
-  </div>
-  <div class="g-foot">
-    <button class="exit" id="exit" type="button"><span class="fill" id="fill"></span><span id="exitLabel">Tahan untuk berhenti</span></button>
-    <div class="g-right">
-      <span class="g-count" id="gCount"></span>
-      <button class="icon-btn" id="gFs" type="button" hidden>Layar penuh</button>
-      <button class="icon-btn" id="gSound" type="button" aria-pressed="true">Suara nyala</button>
-    </div>
-  </div>
-</section>
-
 </body>
 </html>

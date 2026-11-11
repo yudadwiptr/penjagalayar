@@ -22,8 +22,6 @@
   SFX.on = !!state.sound;
 
   const panel = $('panel'), goBtn = $('go'), goNote = $('goNote'), soundBtn = $('sound');
-  const guard = $('guard'), gWorld = $('gWorld'), clock = $('clock'), who = $('who'), gTip = $('gTip'), gProg = $('gProg');
-  const exitBtn = $('exit'), fill = $('fill'), exitLabel = $('exitLabel'), gCount = $('gCount'), gSound = $('gSound'), gFs = $('gFs');
   const waitbar = $('waitbar'), wbClock = $('wbClock'), wbPet = $('wbPet'), toastEl = $('toast');
 
   function toast(msg) {
@@ -103,203 +101,41 @@
   }
   function setSound(on) {
     state.sound = on; SFX.on = on; save();
-    soundBtn.setAttribute('aria-pressed', String(on)); gSound.setAttribute('aria-pressed', String(on));
-    gSound.textContent = on ? 'Suara nyala' : 'Suara mati';
+    soundBtn.setAttribute('aria-pressed', String(on));
     if (on) SFX.ensure();
   }
   soundBtn.onclick = () => setSound(!state.sound);
-  gSound.onclick = () => setSound(!state.sound);
 
   /* =========================================================
-     Mode jaga
+     Mode jaga (logikanya ada di js/core/guard.js)
      ========================================================= */
-  const TIPS = [
-    'Lihat sesuatu yang jauh selama 20 detik.', 'Turunkan bahu. Tarik napas pelan.', 'Minum air dulu.',
-    'Kedipkan mata beberapa kali.', 'Berdiri dan regangkan punggung.', 'Putar pergelangan tangan pelan-pelan.',
-    'Tutup mata sebentar. Biar dia yang jaga.', 'Lemaskan rahang. Kamu menggigitnya dari tadi.'
-  ];
-  const G = { on: false, done: false, leaving: false };
-  const gStage = new Stage(gWorld, {
-    slot: $('gSlot'), bubble: $('gBubble'), fx: $('gFx'), pettable: true,
-    onBoop: (st, e) => { activity(); boop(st, e); },
-    onSlam: (st, side) => {
-      shake(); SFX.play('thud');
-      const R = st.def.rig['paw' + side], pt = st.rig.toScreen(R[0], R[1] - 14), L = st.local(pt.x, pt.y);
-      st.fx('dust', L.x, L.y, 8, 44);
-    }
-  });
-  gStage.active = false;
-
-  function shake() { if (RM) return; gWorld.classList.remove('shake'); void gWorld.offsetWidth; gWorld.classList.add('shake'); }
-  function requestFS() {
-    const el = document.documentElement;
-    if (!el.requestFullscreen || document.fullscreenElement) return;
-    el.requestFullscreen().then(() => { gFs.hidden = true; }).catch(() => { gFs.hidden = false; });
-  }
+  const G = { on: false, ctl: null };
   function notify(title, body) {
     if (!document.hidden || !('Notification' in window) || Notification.permission !== 'granted') return;
     try { new Notification(title, { body }); } catch (e) { /* abaikan */ }
   }
-  function showTip() {
-    gTip.classList.remove('in');
-    setTimeout(() => { gTip.textContent = TIPS[G.tipI++ % TIPS.length]; gTip.classList.add('in'); }, 350);
-  }
-
   function startGuard(auto) {
+    if (G.on) return;
     stopWaiting();
-    const def = PETS[state.pet];
-    Object.assign(G, {
-      on: true, done: false, leaving: false, def, attempts: 0, hist: [], lastAtt: 0, lastAct: performance.now(), sleeping: false, awayAt: 0,
-      dur: state.mins * 60, endAt: Date.now() + state.mins * 60000, startAt: Date.now(), tipI: Math.floor(Math.random() * TIPS.length)
-    });
-    guard.style.setProperty('--glow', def.glow);
-    guard.classList.add('on'); guard.classList.remove('done'); document.body.classList.add('guarding');
+    const def = PETS[state.pet], now = Date.now();
+    G.on = true;
     for (const st of stages) if (st.group === 'setup') st.active = false;
     hero.hideBubble();
-    gStage.active = true; gStage.mount(def); gStage.rig.setBase('watch');
-    who.textContent = `${def.name} sedang bertugas`; gCount.textContent = ''; exitLabel.textContent = 'Tahan untuk berhenti';
-    fill.style.transform = 'scaleX(0)'; gProg.style.transform = 'scaleX(0)'; gFs.hidden = true;
-    SFX.ensure();
-    if (auto) { if (document.documentElement.requestFullscreen) gFs.hidden = false; } else requestFS();
-
-    G.ac = new AbortController(); const sig = { signal: G.ac.signal };
-    addEventListener('pointermove', onGuardMove, { signal: G.ac.signal, passive: true });
-    addEventListener('keydown', onGuardKey, sig);
-    addEventListener('blur', onAway, sig); addEventListener('focus', onBack, sig);
-    document.addEventListener('visibilitychange', () => (document.hidden ? onAway() : onBack()), sig);
-    document.addEventListener('fullscreenchange', onFsChange, sig);
-    guard.addEventListener('pointerdown', onGuardDown, sig);
-
-    G.greet = setTimeout(() => { if (G.on && !G.done) { greet(gStage); SFX.voice(def); } }, RM ? 200 : 1000);
-    G.tick = setInterval(tick, 250); tick();
-    showTip(); G.tipT = setInterval(showTip, 20000);
-    G.idleT = setInterval(() => {
-      if (G.on && !G.done && !G.sleeping && !holding && Math.random() < .6) { gStage.say(pick(def.lines.idle)); if (Math.random() < .35) SFX.voice(def); }
-    }, 28000);
-  }
-
-  function tick() {
-    if (!G.on || G.done || G.leaving) return;
-    const left = Math.max(0, Math.ceil((G.endAt - Date.now()) / 1000));
-    clock.textContent = fmt(left);
-    gProg.style.transform = `scaleX(${(1 - left / G.dur).toFixed(4)})`;
-    document.title = `${fmt(left)} · ${G.def.name} jaga`;
-    if (left <= 0) { finish(); return; }
-    const m = gStage.rig.mood;
-    if (!G.sleeping && !holding && performance.now() - G.lastAct > 22000 && (m === 'watch' || m === 'calm')) sleep();
-  }
-  function activity() { G.lastAct = performance.now(); if (G.sleeping && !G.done) wake(false); }
-  function sleep() {
-    G.sleeping = true; const r = gStage.rig;
-    r.setBase('sleepy'); r.moodUntil = 0; r.setMood('sleepy');
-    gStage.say(pick(G.def.lines.sleep));
-    clearInterval(G.zzz); G.zzz = setInterval(() => { const h = gStage.headPt(.74, .2); gStage.fx('z', h.x, h.y); }, 1300);
-  }
-  function wake(silent) {
-    G.sleeping = false; clearInterval(G.zzz);
-    const r = gStage.rig; r.setBase(G.done ? 'happy' : 'watch'); r.setMood('shock', .6);
-    if (!silent) gStage.say(pick(G.def.lines.wake));
-  }
-  function onGuardMove(e) { activity(); if (e.clientY < 16) attempt('top'); }
-  function onGuardKey(e) {
-    if (e.target === exitBtn && (e.key === ' ' || e.key === 'Enter')) return;
-    activity(); attempt('key');
-  }
-  function onAway() { if (G.on && !G.awayAt) G.awayAt = performance.now(); }
-  function onBack() {
-    if (!G.awayAt) return;
-    const gone = performance.now() - G.awayAt; G.awayAt = 0;
-    if (gone > 1200) attempt('back');
-  }
-  function onFsChange() {
-    if (!G.on || G.leaving) return;
-    if (document.fullscreenElement) { gFs.hidden = true; return; }
-    gFs.hidden = false; attempt('fs');
-  }
-  function onGuardDown(e) {
-    if (e.target.closest('.g-foot')) return;
-    activity();
-    if (!G.done && !gFs.hidden) requestFS();
-  }
-
-  /* teguran bertingkat: melotot → menggeram → menggebrak → mendekat */
-  function attempt(kind) {
-    if (!G.on || G.done || G.leaving || holding) return;
-    const n = performance.now(); if (n - G.lastAtt < 1400) return; G.lastAtt = n;
-    if (G.sleeping) wake(true);
-    G.attempts++; G.hist = G.hist.filter((x) => n - x < 45000); G.hist.push(n);
-    const c = G.hist.length, r = gStage.rig, L = G.def.lines, sfx = G.def.sfx, h = gStage.headPt(.86, .08);
-    gCount.textContent = `Coba kabur: ${G.attempts}×`;
-    if (c >= 5) { r.setMood('furious', 3.4); r.doAct('slam'); gStage.say(pick(L.close)); SFX.voice(G.def, 'angry'); gStage.fx('anger', h.x, h.y); }
-    else if (c >= 3) { r.setMood('angry', 2.8); r.doAct('slam'); gStage.say(pick(L.slam)); }
-    else if (c === 2) { r.setMood('angry', 2.4); gStage.say(pick(kind === 'back' ? L.back : L.angry)); SFX.voice(G.def, 'angry'); gStage.fx('anger', h.x, h.y); }
-    else { r.setMood('angry', 2); gStage.say(pick(kind === 'back' ? L.back : L.escape)); SFX.voice(G.def); }
-  }
-
-  /* tahan tiga detik untuk berhenti */
-  let holding = false, holdStart = 0, holdRaf = 0, holdStep = 0;
-  function holdBegin(e) {
-    if (!G.on || G.leaving || G.done || holding) return;
-    if (e && e.pointerId != null) { e.preventDefault(); try { exitBtn.setPointerCapture(e.pointerId); } catch (_) { /* abaikan */ } }
-    holding = true; holdStart = performance.now(); holdStep = 0; activity();
-    const r = gStage.rig; r.setMood('shock'); gStage.say(pick(G.def.lines.hold));
-    const step = () => {
-      if (!holding) return;
-      const pct = Math.min(1, (performance.now() - holdStart) / 3000);
-      fill.style.transform = `scaleX(${pct.toFixed(3)})`;
-      if (pct > .5 && holdStep === 0) { holdStep = 1; r.setMood('sad'); }
-      if (pct >= 1) { holding = false; fill.style.transform = 'scaleX(0)'; quitEarly(); return; }
-      holdRaf = requestAnimationFrame(step);
-    };
-    holdRaf = requestAnimationFrame(step);
-  }
-  function holdEnd() {
-    if (!holding) return;
-    holding = false; cancelAnimationFrame(holdRaf); fill.style.transform = 'scaleX(0)';
-    const r = gStage.rig; r.setMood(r.base); gStage.say(pick(G.def.lines.stay));
-  }
-  exitBtn.addEventListener('pointerdown', holdBegin);
-  ['pointerup', 'pointercancel', 'lostpointercapture'].forEach((ev) => exitBtn.addEventListener(ev, holdEnd));
-  exitBtn.addEventListener('keydown', (e) => { if ((e.key === ' ' || e.key === 'Enter') && !e.repeat && !G.done) { e.preventDefault(); holdBegin(); } });
-  exitBtn.addEventListener('keyup', (e) => { if (e.key === ' ' || e.key === 'Enter') holdEnd(); });
-  exitBtn.addEventListener('click', () => { if (G.done && !G.leaving) leaveGuard('done'); });
-  gFs.addEventListener('click', requestFS);
-
-  function quitEarly() {
-    G.leaving = true;
-    const r = gStage.rig; r.setBase('sad'); r.setMood('sad');
-    gStage.say(pick(G.def.lines.quit)); SFX.voice(G.def, 'angry');
-    setTimeout(() => leaveGuard('quit'), 1500);
-  }
-  function finish() {
-    G.done = true; clearInterval(G.tick); clearInterval(G.idleT);
-    if (G.sleeping) { G.sleeping = false; clearInterval(G.zzz); }
-    guard.classList.add('done'); clock.textContent = 'Selesai'; gProg.style.transform = 'scaleX(1)';
-    document.title = 'Selesai · ' + BASE_TITLE;
-    const r = gStage.rig; r.moodUntil = 0; r.setBase('happy'); r.setMood('happy'); if (G.def.happyAct) r.doAct(G.def.happyAct);
-    const line = pick(G.def.lines.done);
-    gStage.say(line, 5200);
-    SFX.play('chime'); setTimeout(() => SFX.voice(G.def), 520);
-    const h = gStage.headPt(.5, .25); gStage.fx('spark', h.x, h.y, 9, 140);
-    exitLabel.textContent = 'Kembali kerja'; who.textContent = `${G.def.name} selesai bertugas`;
-    notify('Istirahat selesai', `${G.def.name}: ${line}`);
-  }
-  function leaveGuard(reason) {
-    G.leaving = true;
-    [G.tick, G.idleT, G.tipT, G.zzz].forEach(clearInterval); clearTimeout(G.greet);
-    if (G.ac) G.ac.abort();
-    gStage.hideBubble();
-    const elapsed = Math.round((Date.now() - G.startAt) / 1000);
-    gStage.rig.leave().then(() => {
-      guard.classList.remove('on', 'done'); document.body.classList.remove('guarding');
-      if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
-      gStage.active = false; gStage.unmount();
-      for (const st of stages) if (st.group === 'setup') { st.active = true; if (st.rig) st.rig.measure(); }
-      G.on = false; G.leaving = false; document.title = BASE_TITLE;
-      if (reason === 'done') toast(G.attempts ? `Istirahat ${state.mins} menit selesai. Coba kabur ${G.attempts}×.` : `Istirahat ${state.mins} menit selesai, tanpa sekali pun coba kabur.`);
-      else toast(`Berhenti setelah ${fmt(elapsed)}. ${G.def.name} sedikit kecewa.`);
-      if (hero.rig) setTimeout(() => hero.say(reason === 'done' ? 'Selamat datang kembali.' : 'Lain kali sampai habis, ya.'), 400);
-      if (state.every) startWaiting(false);
+    document.body.classList.add('guarding');
+    G.ctl = PI.Guard.create({
+      host: document.body, def, startAt: now, endAt: now + state.mins * 60000, sound: state.sound,
+      fullscreen: true, autoStart: !!auto, setTitle: true,
+      onSound: (on) => setSound(on),
+      onFinish: (line) => notify('Istirahat selesai', `${def.name}: ${line}`),
+      onLeave: (reason, s) => {
+        document.body.classList.remove('guarding');
+        for (const st of stages) if (st.group === 'setup') { st.active = true; if (st.rig) st.rig.measure(); }
+        G.on = false; G.ctl = null; document.title = BASE_TITLE;
+        if (reason === 'done') toast(s.attempts ? `Istirahat ${state.mins} menit selesai. Coba kabur ${s.attempts}×.` : `Istirahat ${state.mins} menit selesai, tanpa sekali pun coba kabur.`);
+        else toast(`Berhenti setelah ${fmt(s.elapsed)}. ${def.name} sedikit kecewa.`);
+        if (hero.rig) setTimeout(() => hero.say(reason === 'done' ? 'Selamat datang kembali.' : 'Lain kali sampai habis, ya.'), 400);
+        if (state.every) startWaiting(false);
+      }
     });
   }
 

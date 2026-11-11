@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<title>Pawang Layar</title>
+<link rel="stylesheet" href="../css/guard.css">
+<style>
+  :root {
+    --bg: #F6F1E6; --card: #EFE8D8; --ink: #1B1D17; --muted: #656B5E;
+    --line: #DCD3BF; --go: #F06A1E; --go-ink: #FFFDF8; --accent: #F3C48E;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #13160F; --card: #1C2017; --ink: #EDEFE7; --muted: #939B89; --line: #2C3225;
+    }
+  }
+  * { box-sizing: border-box }
+  body {
+    width: 360px; margin: 0; padding: 14px; background: var(--bg); color: var(--ink);
+    font-family: "Instrument Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 13px; line-height: 1.4; user-select: none; overflow-x: hidden;
+  }
+  button { font: inherit; color: inherit; cursor: pointer }
+
+  .top {
+    position: relative; height: 148px; border-radius: 18px; overflow: hidden;
+    background: radial-gradient(95% 85% at 50% 105%, var(--accent), var(--card) 76%);
+    border: 1px solid rgba(0, 0, 0, .06); margin-bottom: 12px;
+  }
+  .top-meta {
+    position: relative; z-index: 3; display: flex; justify-content: space-between; align-items: flex-start;
+    padding: 10px 12px; pointer-events: none;
+  }
+  .top-title { margin: 0; font-weight: 800; font-size: 16px; line-height: 1.1 }
+  .top-sub { margin: 2px 0 0; font-size: 11.5px; color: var(--muted) }
+  .top-badge {
+    font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 99px;
+    background: rgba(255, 255, 255, .55); color: #1B1D17; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  }
+  .top-stage {
+    position: absolute; left: 50%; bottom: 0; translate: -50% 0;
+    width: 142px; height: 142px; z-index: 1;
+  }
+  .top .bubble { font-size: 12px; padding: 6px 10px; max-width: 210px }
+
+  .status-box {
+    background: var(--card); border: 1.5px solid var(--go); border-radius: 14px;
+    padding: 10px 12px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  }
+  .status-box[hidden] { display: none }
+  .status-info b { display: block; font-size: 14px; font-variant-numeric: tabular-nums }
+  .status-info span { font-size: 11.5px; color: var(--muted) }
+  .status-btns { display: flex; gap: 6px }
+  .btn-sm {
+    border: 1px solid var(--line); background: var(--bg); padding: 6px 10px;
+    border-radius: 99px; font-weight: 600; font-size: 12px;
+  }
+  .btn-sm.primary { background: var(--go); color: var(--go-ink); border-color: var(--go) }
+
+  .sec-label {
+    font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
+    color: var(--muted); margin: 10px 0 6px; display: flex; justify-content: space-between;
+  }
+  .pets {
+    display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px;
+    max-height: 156px; overflow-y: auto; padding-right: 2px;
+  }
+  .pet {
+    background: var(--card); border: 1.5px solid transparent; border-radius: 12px;
+    padding: 4px 2px 5px; text-align: center; display: flex; flex-direction: column; align-items: center;
+  }
+  .pet:hover { border-color: var(--line) }
+  .pet[aria-pressed="true"] { border-color: var(--go); background: color-mix(in srgb, var(--go) 10%, var(--card)) }
+  .pet-art { width: 38px; height: 38px; pointer-events: none }
+  .pet b { font-size: 10.5px; font-weight: 600; line-height: 1.1; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100% }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 5px }
+  .chip {
+    background: var(--card); border: 1.5px solid transparent; border-radius: 99px;
+    padding: 5px 10px; font-weight: 600; font-size: 12px;
+  }
+  .chip[aria-pressed="true"] { background: var(--ink); color: var(--bg) }
+
+  .actions { display: flex; gap: 8px; margin-top: 12px }
+  .go {
+    flex: 1; background: var(--go); color: var(--go-ink); border: 0; border-radius: 99px;
+    padding: 10px 16px; font-weight: 700; font-size: 14px;
+  }
+  .go:hover { filter: brightness(1.05) }
+  .toggle {
+    background: var(--card); border: 1.5px solid var(--line); border-radius: 99px;
+    padding: 10px 13px; font-weight: 600; font-size: 12.5px;
+  }
+  .toggle[aria-pressed="false"] { opacity: .6 }
+</style>
+
+<script src="../js/core/util.js" defer></script>
+<script src="../js/core/audio.js" defer></script>
+<script src="../assets/suara/daftar.js" defer></script>
+<script src="../js/core/rig.js" defer></script>
+<script src="../js/core/stage.js" defer></script>
+<script src="../js/characters/oyen.js" defer></script>
+<script src="../js/characters/mochi.js" defer></script>
+<script src="../js/characters/kapi.js" defer></script>
+<script src="../js/characters/bambu.js" defer></script>
+<script src="../js/characters/honk.js" defer></script>
+<script src="../js/characters/utan.js" defer></script>
+<script src="../js/characters/komo.js" defer></script>
+<script src="../js/characters/uhu.js" defer></script>
+<script src="../js/characters/jago.js" defer></script>
+<script src="../js/characters/bangkong.js" defer></script>
+<script src="../js/characters/prabowo.js" defer></script>
+<script src="../js/characters/jokowi.js" defer></script>
+<script src="../js/characters/gibran.js" defer></script>
+<script src="../js/characters/megawati.js" defer></script>
+<script src="../js/characters/anies.js" defer></script>
+<script src="../js/characters/ganjar.js" defer></script>
+<script src="../js/characters/bahlil.js" defer></script>
+<script src="popup.js" defer></script>
+</head>
+<body>
+
+<div class="top" id="panel">
+  <div class="top-meta">
+    <div>
+      <p class="top-title" id="pName">Oyen</p>
+      <p class="top-sub" id="pSpecies">Kucing oren</p>
+    </div>
+    <span class="top-badge">Transparan</span>
+  </div>
+  <div class="top-stage"><div class="slot" id="hSlot"></div></div>
+  <div class="bubble" id="hBubble" aria-live="polite"></div>
+  <div class="fx-layer" id="hFx"></div>
+</div>
+
+<div class="status-box" id="statusBox" hidden>
+  <div class="status-info">
+    <span id="stLabel">Sedang bertugas</span>
+    <b id="stClock">0:00</b>
+  </div>
+  <div class="status-btns">
+    <button type="button" class="btn-sm primary" id="stNow" hidden>Sekarang</button>
+    <button type="button" class="btn-sm" id="stStop">Hentikan</button>
+  </div>
+</div>
+
+<div class="sec-label"><span>Pilih Penjaga</span><span id="pTag"></span></div>
+<div class="pets" id="pets"></div>
+
+<div class="sec-label"><span>Durasi Istirahat</span></div>
+<div class="chips" id="dur"></div>
+
+<div class="sec-label"><span>Jadwal</span></div>
+<div class="chips" id="when"></div>
+
+<div class="actions">
+  <button class="go" id="go" type="button">Mulai jaga</button>
+  <button class="toggle" id="sound" type="button" aria-pressed="true">Suara</button>
+</div>
+
+</body>
+</html>
+

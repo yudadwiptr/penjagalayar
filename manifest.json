@@ -1,0 +1,32 @@
+{
+  "manifest_version": 3,
+  "name": "Pawang Layar",
+  "short_name": "Pawang Layar",
+  "version": "1.0.0",
+  "description": "Hewan (dan tokoh) yang duduk di atas halamanmu selama waktu istirahat, memperhatikan kursormu, dan menegur kalau kamu coba kabur.",
+  "icons": {
+    "16": "assets/icon-16.png",
+    "32": "assets/icon-32.png",
+    "48": "assets/icon-48.png",
+    "128": "assets/icon-128.png"
+  },
+  "action": {
+    "default_title": "Pawang Layar",
+    "default_popup": "ext/popup.html",
+    "default_icon": {
+      "16": "assets/icon-16.png",
+      "32": "assets/icon-32.png"
+    }
+  },
+  "background": {
+    "service_worker": "ext/background.js"
+  },
+  "permissions": ["storage", "alarms", "scripting", "tabs"],
+  "host_permissions": ["<all_urls>"],
+  "web_accessible_resources": [
+    {
+      "resources": ["css/guard.css", "assets/suara/*.mp3"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}

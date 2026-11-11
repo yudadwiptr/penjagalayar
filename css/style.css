@@ -21,7 +21,7 @@ body {
   font-size: 16px; line-height: 1.55; -webkit-font-smoothing: antialiased; overflow-x: hidden;
 }
 body.guarding { overflow: hidden }
-h1, .num { font-family: "Bricolage Grotesque", "Instrument Sans", sans-serif }
+h1 { font-family: "Bricolage Grotesque", "Instrument Sans", sans-serif }
 button { font: inherit; color: inherit }
 :focus-visible { outline: 3px solid var(--plum); outline-offset: 2px }
 
@@ -97,82 +97,12 @@ h1 { font-weight: 800; font-size: clamp(56px, 8.4vw, 128px); line-height: .84; l
 .hint { margin: 0; font-size: 13px; color: var(--muted); text-align: right; max-width: 17ch; line-height: 1.35 }
 @media (max-width: 420px) { .hint { display: none } }
 .panel-stage { position: absolute; left: 50%; bottom: 0; translate: -50% 0; width: 90%; width: min(100cqw, 80cqh); aspect-ratio: 1; z-index: 1 }
-.slot, .slot svg { width: 100%; height: 100%; display: block }
-.pet-svg { cursor: pointer; -webkit-tap-highlight-color: transparent }
-.fx-layer { position: absolute; inset: 0; pointer-events: none; z-index: 6; overflow: hidden }
 
 @media (max-width: 900px) {
   .app { grid-template-columns: 1fr; grid-template-areas: "intro" "panel" "form"; grid-template-rows: auto }
   .panel { position: relative; top: 0; height: 440px; min-height: 0; margin: 0 0 32px }
   .intro { padding-top: 8px }
 }
-
-/* ---------- gelembung bicara ---------- */
-.bubble {
-  position: absolute; left: 0; top: 0; z-index: 5; width: max-content; max-width: min(72vw, 300px);
-  padding: 10px 16px; border-radius: 18px 18px 18px 5px; background: #FFFDF6; color: #1B1D17;
-  font-weight: 600; font-size: 16px; line-height: 1.3; box-shadow: 0 10px 28px -8px rgba(0, 0, 0, .28);
-  opacity: 0; pointer-events: none; transition: opacity .18s; transform-origin: 0 100%;
-}
-.bubble.show { opacity: 1; animation: pop .3s cubic-bezier(.3, 1.6, .5, 1) }
-@keyframes pop { from { scale: .6 } to { scale: 1 } }
-
-/* ---------- partikel ---------- */
-.fx { position: absolute; pointer-events: none; translate: -50% -50%; will-change: transform, opacity; line-height: 1 }
-.fx svg { width: 100%; height: 100%; display: block }
-.fx-heart { width: 30px; height: 30px; animation: floatUp 1.6s ease-out both }
-.fx-spark { width: 24px; height: 24px; animation: floatUp 1.9s ease-out both }
-@keyframes floatUp {
-  0% { opacity: 0; transform: translate(0, 0) scale(.3) }
-  15% { opacity: 1; transform: translate(calc(var(--dx) * .2), -16px) scale(1.05) }
-  100% { opacity: 0; transform: translate(var(--dx), -150px) rotate(var(--r)) scale(.75) }
-}
-.fx-z { font: 800 30px "Bricolage Grotesque", sans-serif; color: #CFE1FF; animation: zUp 2.6s ease-out both }
-@keyframes zUp { 0% { opacity: 0; transform: translate(0, 0) scale(.5) } 20% { opacity: 1 } 100% { opacity: 0; transform: translate(70px, -130px) scale(1.5) rotate(14deg) } }
-.fx-anger { width: 48px; height: 48px; animation: throb 1.3s ease-out both }
-.fx-bang { font: 800 46px "Bricolage Grotesque", sans-serif; color: #FFC93D; text-shadow: 0 2px 0 rgba(0, 0, 0, .25); animation: throb 1s ease-out both }
-@keyframes throb { 0% { opacity: 0; transform: scale(.3) } 18% { opacity: 1; transform: scale(1.2) } 32% { transform: scale(.92) } 48% { transform: scale(1.08) } 80% { opacity: 1; transform: scale(1) } 100% { opacity: 0; transform: scale(1) } }
-.fx-dust { width: 18px; height: 18px; border-radius: 50%; background: rgba(255, 236, 214, .6); animation: dust .75s ease-out both }
-@keyframes dust { 0% { opacity: .95; transform: translate(0, 0) scale(.5) } 100% { opacity: 0; transform: translate(calc(var(--dx) * 1.6), -30px) scale(2) } }
-
-/* ---------- mode jaga ---------- */
-.guard {
-  position: fixed; inset: 0; z-index: 50; display: none; overflow: hidden; color: #F1F4EA;
-  background:
-    radial-gradient(70% 60% at 50% 100%, var(--glow, rgba(240, 150, 70, .32)), transparent 72%),
-    radial-gradient(90% 50% at 50% -10%, rgba(255, 255, 255, .05), transparent 70%),
-    #0E110B;
-  user-select: none; -webkit-user-select: none; touch-action: none;
-}
-.guard.on { display: block }
-.g-world { position: absolute; inset: 0 }
-.g-world.shake { animation: shake .5s cubic-bezier(.36, .07, .19, .97) }
-@keyframes shake { 10%, 90% { transform: translate(-2px, 1px) } 20%, 80% { transform: translate(5px, -2px) } 30%, 50%, 70% { transform: translate(-10px, 4px) } 40%, 60% { transform: translate(10px, -3px) } }
-.g-bar { position: absolute; top: 0; left: 0; right: 0; height: 4px; background: rgba(255, 255, 255, .06); z-index: 3 }
-.g-bar i { display: block; height: 100%; background: var(--go); transform-origin: 0 50%; transform: scaleX(0); transition: transform .25s linear }
-.g-head { position: absolute; top: max(4vh, 24px); left: 16px; right: 16px; text-align: center; z-index: 2; pointer-events: none }
-.g-tip { margin: 0 auto 6px; color: #B9C4AE; font-size: 15px; min-height: 1.5em; max-width: 46ch; opacity: 0; transition: opacity .4s }
-.g-tip.in { opacity: 1 }
-.num { font-weight: 800; font-size: clamp(56px, min(13vh, 19vw), 136px); letter-spacing: -.045em; line-height: 1; margin: 0; font-variant-numeric: tabular-nums }
-.g-who { margin: 8px 0 0; color: #94A08A; font-size: 15px }
-.guard.done .num { color: var(--go) }
-.g-stage { position: absolute; left: 50%; bottom: 0; translate: -50% 0; width: min(100vw, 70vh, 920px); aspect-ratio: 1; z-index: 1 }
-.guard .bubble { font-size: 18px; padding: 12px 18px }
-.g-foot { position: absolute; left: 16px; right: 16px; bottom: max(16px, env(safe-area-inset-bottom)); display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; z-index: 8; pointer-events: none }
-.g-foot > * { pointer-events: auto }
-.exit {
-  position: relative; overflow: hidden; isolation: isolate; cursor: pointer; touch-action: none;
-  background: rgba(14, 17, 11, .6); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
-  color: #C3CDB8; border: 1.5px solid #3A4332; border-radius: 999px; padding: 11px 20px; font-weight: 600;
-}
-.exit .fill { position: absolute; inset: 0; background: #55624A; transform: scaleX(0); transform-origin: 0 50%; z-index: -1 }
-.guard.done .exit { background: var(--go); border-color: var(--go); color: #fff; font-size: 17px; padding: 14px 26px }
-.g-right { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: flex-end }
-.g-count { font-size: 13px; color: #C9B9A0; background: rgba(14, 17, 11, .6); padding: 8px 12px; border-radius: 99px; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px) }
-.g-count:empty { display: none }
-.icon-btn { cursor: pointer; background: rgba(14, 17, 11, .6); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); border: 1.5px solid #3A4332; color: #C3CDB8; border-radius: 999px; padding: 9px 14px; font-size: 14px; font-weight: 600 }
-.icon-btn[aria-pressed="false"] { opacity: .65 }
-.icon-btn[hidden] { display: none }
 
 /* ---------- jadwal & toast ---------- */
 .waitbar {
@@ -194,7 +124,5 @@ h1 { font-weight: 800; font-size: clamp(56px, 8.4vw, 128px); line-height: .84; l
 .toast.show { translate: -50% 0 }
 
 @media (prefers-reduced-motion: reduce) {
-  .g-world.shake { animation: none }
   .pet:hover { transform: none }
-  .bubble.show { animation: none }
 }

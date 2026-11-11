@@ -9,7 +9,7 @@ window.PI = (() => {
   const f2 = (n) => n.toFixed(2);
   const $ = (id) => document.getElementById(id);
   const setT = (el, v) => { if (el) el.setAttribute('transform', v); };
-  const fmt = (s) => String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+  const fmt = (s) => Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
   const easeOutBack = (x) => { const c1 = 1.45, c3 = c1 + 1; return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2); };
 
   /* Cerminkan potongan SVG di sumbu x = 200 (kanvas karakter 400×400). */
