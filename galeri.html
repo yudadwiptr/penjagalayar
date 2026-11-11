@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Galeri · Pawang Layar</title>
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/style.css">
+<style>
+  body { padding: 24px }
+  .bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 20px }
+  .bar h1 { font-size: 32px; margin: 0 16px 0 0; line-height: 1 }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px }
+  .cell { background: var(--card); border: 1.5px solid var(--line); border-radius: 20px; overflow: hidden }
+  .cell .slot { aspect-ratio: 1; height: auto; background: color-mix(in srgb, var(--accent) var(--panel-mix), var(--paper)) }
+  .cell p { margin: 0; padding: 10px 14px; font-weight: 600 }
+  .cell small { color: var(--muted); font-weight: 400 }
+</style>
+<script src="js/core/util.js" defer></script>
+<script src="js/core/audio.js" defer></script>
+<script src="assets/suara/daftar.js" defer></script>
+<script src="js/core/rig.js" defer></script>
+<script src="js/core/stage.js" defer></script>
+<script src="js/characters/oyen.js" defer></script>
+<script src="js/characters/mochi.js" defer></script>
+<script src="js/characters/kapi.js" defer></script>
+<script src="js/characters/bambu.js" defer></script>
+<script src="js/characters/honk.js" defer></script>
+<script src="js/characters/utan.js" defer></script>
+<script src="js/characters/komo.js" defer></script>
+<script src="js/characters/uhu.js" defer></script>
+<script src="js/characters/jago.js" defer></script>
+<script src="js/characters/bangkong.js" defer></script>
+<script src="js/characters/prabowo.js" defer></script>
+<script src="js/characters/jokowi.js" defer></script>
+<script src="js/characters/gibran.js" defer></script>
+<script src="js/characters/megawati.js" defer></script>
+<script src="js/characters/anies.js" defer></script>
+<script src="js/characters/ganjar.js" defer></script>
+<script src="js/characters/bahlil.js" defer></script>
+</head>
+<body>
+<div class="bar"><h1>Galeri penjaga</h1><div class="chips" id="moods"></div><div class="chips" id="acts"></div></div>
+<div class="grid" id="grid"></div>
+<script>
+/* Alat bantu: tampilkan semua karakter, uji suasana hati dan aksi. Tidak dipakai oleh aplikasi utama.
+   Mode pratinjau statis (untuk screenshot otomatis):
+     galeri.html?only=<kunci>&poses=1   → satu karakter dalam 5 pose, tanpa animasi berjalan */
+addEventListener('DOMContentLoaded', () => {
+  const q = new URLSearchParams(location.search), only = q.get('only');
+  if (only && PI.chars[only] && q.has('poses')) return poses(PI.chars[only]);
+  const grid = document.getElementById('grid'), list = [];
+  for (const key of (only && PI.chars[only] ? [only] : PI.order)) {
+    const def = PI.chars[key], cell = document.createElement('div');
+    cell.className = 'cell'; cell.style.setProperty('--accent', def.accent);
+    cell.innerHTML = `<div class="slot"></div><p>${def.name} <small>· ${def.species} · ${key}.js</small></p>`;
+    grid.appendChild(cell);
+    const st = new PI.Stage(cell, { slot: cell.firstElementChild, pettable: true });
+    st.mount(def, true); list.push(st);
+  }
+  const mk = (el, items, fn) => items.forEach((n) => { const b = document.createElement('button'); b.className = 'chip'; b.textContent = n; b.onclick = () => list.forEach((s) => fn(s, n)); el.appendChild(b); });
+  mk(document.getElementById('moods'), Object.keys(PI.MOODS), (s, n) => s.rig.setMood(n));
+  mk(document.getElementById('acts'), ['talk', 'slam', 'bob', 'flap', 'flick', 'croak', 'nod', 'munch', 'wag', 'knead', 'yawn'], (s, n) => n === 'talk' ? s.rig.talk(30) : s.rig.doAct(n));
+  PI.startLoop();
+});
+
+function poses(def) {
+  document.querySelector('.bar').innerHTML = `<h1>${def.name}</h1><span>${def.species} · ${def.key}.js</span>`;
+  const grid = document.getElementById('grid');
+  grid.style.gridTemplateColumns = 'repeat(6, 260px)';
+  const P = [
+    { label: 'calm' },
+    { label: 'angry', mood: 'angry' },
+    { label: 'happy', mood: 'happy' },
+    { label: 'gesture', act: 'gesture', at: 1.0 },
+    { label: 'bicara', talk: true, at: .32 },
+    { label: 'sleepy', mood: 'sleepy' }
+  ];
+  for (const ps of P) {
+    const cell = document.createElement('div');
+    cell.className = 'cell'; cell.style.setProperty('--accent', def.accent);
+    cell.innerHTML = `<div class="slot"></div><p>${ps.label}</p>`;
+    grid.appendChild(cell);
+    const st = new PI.Stage(cell, { slot: cell.firstElementChild });
+    const r = st.mount(def, true);
+    r.blinkAt = 1e9; r.nextIdle = 1e9; r.wander = { x: 0, y: 0, next: 1e9 };
+    if (ps.mood) r.setMood(ps.mood);
+    if (ps.act) r.doAct(ps.act);
+    if (ps.talk) r.talk(40);
+    const n = Math.round((ps.at || 1.4) * 60);
+    for (let i = 0; i < n; i++) st.update(1 / 60);
+    st.active = false;
+  }
+  document.body.dataset.ready = '1';
+}
+</script>
+</body>
+</html>

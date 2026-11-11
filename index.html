@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pawang Layar</title>
+<meta name="description" content="Hewan (dan tokoh) yang duduk di layarmu selama waktu istirahat, memperhatikan kursormu, dan menegur kalau kamu coba kabur.">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+
+<!-- inti -->
+<script src="js/core/util.js" defer></script>
+<script src="js/core/audio.js" defer></script>
+<script src="assets/suara/daftar.js" defer></script>
+<script src="js/core/rig.js" defer></script>
+<script src="js/core/stage.js" defer></script>
+<!-- karakter: urutan di sini = urutan di layar -->
+<script src="js/characters/oyen.js" defer></script>
+<script src="js/characters/mochi.js" defer></script>
+<script src="js/characters/kapi.js" defer></script>
+<script src="js/characters/bambu.js" defer></script>
+<script src="js/characters/honk.js" defer></script>
+<script src="js/characters/utan.js" defer></script>
+<script src="js/characters/komo.js" defer></script>
+<script src="js/characters/uhu.js" defer></script>
+<script src="js/characters/jago.js" defer></script>
+<script src="js/characters/bangkong.js" defer></script>
+<script src="js/characters/prabowo.js" defer></script>
+<script src="js/characters/jokowi.js" defer></script>
+<script src="js/characters/gibran.js" defer></script>
+<script src="js/characters/megawati.js" defer></script>
+<script src="js/characters/anies.js" defer></script>
+<script src="js/characters/ganjar.js" defer></script>
+<script src="js/characters/bahlil.js" defer></script>
+<!-- aplikasi -->
+<script src="js/app.js" defer></script>
+</head>
+<body>
+
+<main class="app">
+  <section class="intro">
+    <p class="eyebrow">Istirahat yang dijaga</p>
+    <h1>Pawang<br>Layar</h1>
+    <p class="sub">Pilih satu penjaga. Dia duduk di layarmu sampai waktu istirahat habis, memperhatikan setiap gerak kursormu, dan menegur kalau kamu coba kabur.</p>
+  </section>
+
+  <aside class="panel" id="panel" aria-label="Pratinjau penjaga">
+    <p class="wm" id="wm" aria-hidden="true"></p>
+    <div class="panel-meta">
+      <div><p class="species" id="pSpecies"></p><p class="ptag" id="pTag"></p></div>
+      <p class="hint">Elus kepalanya. Jangan klik hidungnya.</p>
+    </div>
+    <div class="panel-stage"><div class="slot" id="hSlot"></div></div>
+    <div class="bubble" id="hBubble" aria-live="polite"></div>
+    <div class="fx-layer" id="hFx"></div>
+  </aside>
+
+  <section class="form">
+    <div class="group">
+      <p class="label"><span>01</span>Siapa yang jaga?</p>
+      <p class="pick-sub">Hewan</p>
+      <div class="pets" id="pets"></div>
+      <div class="tokoh-wrap">
+        <p class="pick-sub">Tokoh</p>
+        <div class="pets" id="people"></div>
+        <p class="parody">Karikatur tokoh di sini adalah parodi untuk hiburan. Tidak berafiliasi dengan, dan tidak mewakili, tokoh aslinya.</p>
+      </div>
+    </div>
+    <div class="group">
+      <p class="label"><span>02</span>Berapa lama istirahatnya?</p>
+      <div class="chips" id="dur"></div>
+    </div>
+    <div class="group">
+      <p class="label"><span>03</span>Kapan dia datang?</p>
+      <div class="chips" id="when"></div>
+    </div>
+    <div class="actions">
+      <button class="go" id="go" type="button">Mulai jaga</button>
+      <button class="toggle" id="sound" type="button" aria-pressed="true">Suara <i></i></button>
+    </div>
+    <p class="note" id="goNote"></p>
+
+    <div class="does">
+      <div><b>Memperhatikan</b><p>Matanya mengikuti kursormu ke mana pun. Kadang melirik ke tempat lain, lalu kembali ke kamu.</p></div>
+      <div><b>Ikut tertidur</b><p>Kalau kamu diam dan benar-benar istirahat, dia pelan-pelan ikut terlelap.</p></div>
+      <div><b>Makin galak</b><p>Pindah tab, tekan tombol, atau dorong kursor ke atas layar. Teguran pertama halus, berikutnya tidak.</p></div>
+      <div><b>Bisa dielus</b><p>Usap kepalanya dengan kursor. Untuk berhenti lebih awal, tahan tombol keluar tiga detik.</p></div>
+    </div>
+  </section>
+</main>
+
+<div class="waitbar" id="waitbar" hidden>
+  <span class="wb-text"><span id="wbPet">Oyen</span> datang dalam</span>
+  <b id="wbClock">25:00</b>
+  <button type="button" class="primary" id="wbNow">Sekarang</button>
+  <button type="button" id="wbCancel">Batal</button>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<section class="guard" id="guard" aria-label="Mode jaga">
+  <div class="g-world" id="gWorld">
+    <div class="g-bar"><i id="gProg"></i></div>
+    <header class="g-head">
+      <p class="g-tip" id="gTip"></p>
+      <p class="num" id="clock">05:00</p>
+      <p class="g-who" id="who"></p>
+    </header>
+    <div class="g-stage"><div class="slot" id="gSlot"></div></div>
+    <div class="bubble" id="gBubble" aria-live="polite"></div>
+    <div class="fx-layer" id="gFx"></div>
+  </div>
+  <div class="g-foot">
+    <button class="exit" id="exit" type="button"><span class="fill" id="fill"></span><span id="exitLabel">Tahan untuk berhenti</span></button>
+    <div class="g-right">
+      <span class="g-count" id="gCount"></span>
+      <button class="icon-btn" id="gFs" type="button" hidden>Layar penuh</button>
+      <button class="icon-btn" id="gSound" type="button" aria-pressed="true">Suara nyala</button>
+    </div>
+  </div>
+</section>
+
+</body>
+</html>
