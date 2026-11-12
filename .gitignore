@@ -11,3 +11,6 @@ desktop.ini
 # Lokal
 .claude/
 node_modules/
+dist/
+src-tauri/target/
+*.zip

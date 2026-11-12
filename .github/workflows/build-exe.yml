@@ -1,0 +1,50 @@
+name: Build Windows EXE & Chrome Extension
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Prepare frontend dist & Chrome Extension zip
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          Copy-Item index.html, galeri.html, manifest.json -Destination dist/
+          Copy-Item -Recurse css, js, ext -Destination dist/
+          New-Item -ItemType Directory -Force -Path dist/assets/suara | Out-Null
+          Copy-Item assets/favicon.svg, assets/icon-*.png -Destination dist/assets/
+          Copy-Item assets/suara/*.mp3, assets/suara/daftar.js, assets/suara/CREDITS.md, assets/suara/README.md -Destination dist/assets/suara/
+          Compress-Archive -Path dist/* -DestinationPath pawang-layar-chrome-extension.zip -Force
+
+      - name: Upload Chrome Extension ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: Pawang-Layar-Chrome-Extension
+          path: pawang-layar-chrome-extension.zip
+
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: "./src-tauri -> target"
+
+      - name: Build Tauri Windows EXE
+        run: npx --yes @tauri-apps/cli@^2.0.0 build
+
+      - name: Upload Windows EXE Installer & Portable EXE
+        uses: actions/upload-artifact@v4
+        with:
+          name: Pawang-Layar-Windows-EXE
+          path: |
+            src-tauri/target/release/pawang-layar.exe
+            src-tauri/target/release/bundle/nsis/*.exe
+            src-tauri/target/release/bundle/msi/*.msi

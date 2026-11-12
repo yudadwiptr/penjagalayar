@@ -125,20 +125,29 @@
     if (!document.hidden || !('Notification' in window) || Notification.permission !== 'granted') return;
     try { new Notification(title, { body }); } catch (e) { /* abaikan */ }
   }
+  const isTauri = () => !!(window.__TAURI_INTERNALS__ && window.__TAURI_INTERNALS__.invoke);
+  const tauriGuard = (active) => {
+    if (!isTauri()) return;
+    document.documentElement.classList.toggle('tauri-transparent', active);
+    window.__TAURI_INTERNALS__.invoke('set_guard_mode', { active }).catch(() => {});
+  };
+
   function startGuard(auto) {
     if (G.on) return;
     stopWaiting();
-    const def = PETS[state.pet], now = Date.now();
+    const def = PETS[state.pet], now = Date.now(), desktop = isTauri();
     G.on = true;
     for (const st of stages) if (st.group === 'setup') st.active = false;
     hero.hideBubble();
     document.body.classList.add('guarding');
+    tauriGuard(true);
     G.ctl = PI.Guard.create({
       host: document.body, def, startAt: now, endAt: now + state.mins * 60000, sound: state.sound, pinHash: state.pinHash,
-      fullscreen: true, autoStart: !!auto, setTitle: true,
+      fullscreen: !desktop, transparent: desktop, blockInput: desktop, autoStart: !!auto, setTitle: true,
       onSound: (on) => setSound(on),
       onFinish: (line) => notify('Istirahat selesai', `${def.name}: ${line}`),
       onLeave: (reason, s) => {
+        tauriGuard(false);
         document.body.classList.remove('guarding');
         for (const st of stages) if (st.group === 'setup') { st.active = true; if (st.rig) st.rig.measure(); }
         G.on = false; G.ctl = null; document.title = BASE_TITLE;
