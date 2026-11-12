@@ -17,6 +17,6 @@ PI.soundFiles = [
   'gibran', 'gibran-marah',
   'megawati', 'megawati-marah',
   'anies', 'anies-marah',
-  'ganjar', 'ganjar-marah',
-  'bahlil', 'bahlil-marah'
+  'ganjar', 'ganjar-marah', 'ganjar-senang',
+  'bahlil', 'bahlil-marah', 'bahlil-senang'
 ];
