@@ -33,7 +33,7 @@
       (document.body || document.documentElement).appendChild(host);
 
       guard = PI.Guard.create({
-        host: root, def, startAt: cfg.startAt, endAt: cfg.endAt, sound: cfg.sound,
+        host: root, def, startAt: cfg.startAt, endAt: cfg.endAt, sound: cfg.sound, pinHash: cfg.pinHash || '',
         transparent: true, blockInput: true, escaped: cfg.escaped,
         onSound: (on) => chrome.runtime.sendMessage({ type: 'sound', on }).catch(() => {}),
         onLeave: (reason, stats) => {

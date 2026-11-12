@@ -6,6 +6,7 @@
      def,             // definisi karakter (PI.chars[kunci])
      startAt, endAt,  // timestamp (ms)
      sound,           // suara nyala?
+     pinHash,         // hash sandi (PI.util.pinHash); kalau ada, berhenti lebih awal harus memasukkan sandi
      fullscreen,      // minta layar penuh (website)
      autoStart,       // dimulai otomatis tanpa klik (tampilkan tombol "Layar penuh")
      transparent,     // latar transparan (extension)
@@ -35,7 +36,15 @@
     <div class="fx-layer g-fx"></div>
   </div>
   <div class="g-foot">
-    <button class="exit g-exit" type="button"><span class="fill g-fill"></span><span class="g-exit-label">Tahan untuk berhenti</span></button>
+    <div class="g-left">
+      <button class="exit g-exit" type="button"><span class="fill g-fill"></span><span class="g-exit-label">Tahan untuk berhenti</span></button>
+      <form class="g-pin" hidden>
+        <svg class="g-pin-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+        <input class="g-pin-in" type="password" placeholder="Masukkan sandi…" aria-label="Sandi untuk berhenti" autocomplete="off">
+        <button class="g-pin-ok" type="submit">Buka</button>
+        <button class="g-pin-cancel" type="button">Batal</button>
+      </form>
+    </div>
     <div class="g-right">
       <span class="g-count"></span>
       <button class="icon-btn g-fs" type="button" hidden>Layar penuh</button>
@@ -45,7 +54,7 @@
 </section>`;
 
   function create(o) {
-    const def = o.def;
+    const def = o.def, pinHash = o.pinHash || '';
     const tpl = document.createElement('template');
     tpl.innerHTML = HTML;
     const el = tpl.content.firstElementChild;
@@ -53,6 +62,7 @@
     const $ = (c) => el.querySelector(c);
     const world = $('.g-world'), clock = $('.g-clock'), who = $('.g-who'), tip = $('.g-tip'), prog = $('.g-prog');
     const exitBtn = $('.g-exit'), fill = $('.g-fill'), exitLabel = $('.g-exit-label'), count = $('.g-count'), soundBtn = $('.g-sound'), fsBtn = $('.g-fs');
+    const pinForm = $('.g-pin'), pinIn = $('.g-pin-in'), pinCancel = $('.g-pin-cancel');
 
     const G = {
       done: false, leaving: false, closed: false, attempts: 0, hist: [], lastAtt: 0, lastAct: performance.now(),
@@ -123,6 +133,11 @@
 
     function onKey(e) {
       const t = e.composedPath ? e.composedPath()[0] : e.target;
+      if (t && t.closest && t.closest('.g-pin')) {
+        e.stopPropagation();
+        if (e.key === 'Escape') { e.preventDefault(); closePin(true); }
+        return;
+      }
       if (t === exitBtn && (e.key === ' ' || e.key === 'Enter')) return;
       if (o.blockInput) { e.preventDefault(); e.stopImmediatePropagation(); }
       activity(); attempt('key');
@@ -171,8 +186,49 @@
       else { r.setMood('angry', 2); stage.say(pick(kind === 'back' ? L.back : L.escape)); SFX.voice(def); }
     }
 
-    /* ---------- tahan tiga detik untuk berhenti ---------- */
-    let holding = false, holdStart = 0, holdRaf = 0, holdStep = 0;
+    /* ---------- tahan tiga detik untuk berhenti + kunci sandi ---------- */
+    let holding = false, holdStart = 0, holdRaf = 0, holdStep = 0, unlockMode = 'quit';
+    function requestUnlock(mode) {
+      if (!pinHash) {
+        if (mode === 'done') leave('done'); else quitEarly();
+        return;
+      }
+      unlockMode = mode;
+      exitBtn.hidden = true;
+      pinForm.hidden = false;
+      pinIn.value = '';
+      setTimeout(() => pinIn.focus(), 20);
+      stage.rig.setMood('watch', 3);
+      stage.say('Masukkan sandi dulu.');
+    }
+    function closePin(sayStay) {
+      pinForm.hidden = true; pinForm.classList.remove('err');
+      exitBtn.hidden = false;
+      pinIn.value = '';
+      if (sayStay && !G.done) {
+        const r = stage.rig; r.setMood(r.base); stage.say(pick(def.lines.stay));
+      }
+    }
+    pinCancel.addEventListener('click', () => closePin(true));
+    pinForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (PI.util.pinHash(pinIn.value) === pinHash) {
+        closePin(false);
+        if (unlockMode === 'done') leave('done'); else quitEarly();
+      } else {
+        pinForm.classList.remove('err'); void pinForm.offsetWidth; pinForm.classList.add('err');
+        pinIn.value = '';
+        pinIn.focus();
+        G.attempts++;
+        count.textContent = `Coba kabur: ${G.attempts}×`;
+        const r = stage.rig, h = stage.headPt(.86, .08);
+        r.setMood('furious', 3.4); r.doAct('slam');
+        stage.say('Sandi salah! Jangan coba-coba.');
+        SFX.voice(def, 'angry');
+        stage.fx('anger', h.x, h.y);
+      }
+    });
+
     function holdBegin(e) {
       if (G.leaving || G.done || G.closed || holding) return;
       if (e && e.pointerId != null) { e.preventDefault(); try { exitBtn.setPointerCapture(e.pointerId); } catch (_) { /* abaikan */ } }
@@ -183,7 +239,7 @@
         const pct = Math.min(1, (performance.now() - holdStart) / 3000);
         fill.style.transform = `scaleX(${pct.toFixed(3)})`;
         if (pct > .5 && holdStep === 0) { holdStep = 1; r.setMood('sad'); }
-        if (pct >= 1) { holding = false; fill.style.transform = 'scaleX(0)'; quitEarly(); return; }
+        if (pct >= 1) { holding = false; fill.style.transform = 'scaleX(0)'; requestUnlock('quit'); return; }
         holdRaf = requestAnimationFrame(step);
       };
       holdRaf = requestAnimationFrame(step);
@@ -197,6 +253,7 @@
     ['pointerup', 'pointercancel', 'lostpointercapture'].forEach((ev) => exitBtn.addEventListener(ev, holdEnd));
     exitBtn.addEventListener('keydown', (e) => { if ((e.key === ' ' || e.key === 'Enter') && !e.repeat && !G.done) { e.preventDefault(); holdBegin(); } });
     exitBtn.addEventListener('keyup', (e) => { if (e.key === ' ' || e.key === 'Enter') holdEnd(); });
+    /* waktu sudah habis: langsung boleh kembali, sandi hanya untuk berhenti lebih awal */
     exitBtn.addEventListener('click', () => { if (G.done && !G.leaving) leave('done'); });
 
     function quitEarly() {

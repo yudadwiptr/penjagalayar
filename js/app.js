@@ -13,15 +13,26 @@
   } catch (e) { /* abaikan */ }
   const DURS = [1, 5, 10, 15, 20, 30];
   const WHENS = [{ v: 0, label: 'Sekarang' }, { v: 25, label: 'Tiap 25 menit' }, { v: 45, label: 'Tiap 45 menit' }, { v: 60, label: 'Tiap 60 menit' }];
-  const state = { pet: order[0], mins: 5, every: 0, sound: true };
+  const state = { pet: order[0], mins: 5, every: 0, sound: true, pinHash: '' };
   try { Object.assign(state, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) { /* abaikan */ }
   if (!PETS[state.pet]) state.pet = order[0];
   if (!DURS.includes(state.mins)) state.mins = 5;
   if (!WHENS.some((w) => w.v === state.every)) state.every = 0;
+  if (typeof state.pinHash !== 'string') state.pinHash = '';
+  if (state.pin) state.pinHash = PI.util.pinHash(state.pin);   // pindahkan sandi lama (teks biasa) ke hash
+  const hadPlain = 'pin' in state; delete state.pin;
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { /* abaikan */ } };
   SFX.on = !!state.sound;
 
-  const panel = $('panel'), goBtn = $('go'), goNote = $('goNote'), soundBtn = $('sound');
+  const panel = $('panel'), goBtn = $('go'), goNote = $('goNote'), soundBtn = $('sound'), pinEl = $('pin');
+  if (hadPlain) save();
+  if (pinEl) {
+    /* yang disimpan hanya hash, jadi kolomnya selalu kosong saat dibuka */
+    const ph = () => { pinEl.placeholder = state.pinHash ? 'Sandi sudah diatur · ketik untuk mengganti' : 'Kosongkan jika tanpa sandi…'; };
+    ph();
+    pinEl.addEventListener('input', () => { state.pinHash = PI.util.pinHash(pinEl.value); save(); });
+    pinEl.addEventListener('blur', () => { if (state.pinHash) pinEl.value = ''; ph(); });
+  }
   const waitbar = $('waitbar'), wbClock = $('wbClock'), wbPet = $('wbPet'), toastEl = $('toast');
 
   function toast(msg) {
@@ -123,7 +134,7 @@
     hero.hideBubble();
     document.body.classList.add('guarding');
     G.ctl = PI.Guard.create({
-      host: document.body, def, startAt: now, endAt: now + state.mins * 60000, sound: state.sound,
+      host: document.body, def, startAt: now, endAt: now + state.mins * 60000, sound: state.sound, pinHash: state.pinHash,
       fullscreen: true, autoStart: !!auto, setTitle: true,
       onSound: (on) => setSound(on),
       onFinish: (line) => notify('Istirahat selesai', `${def.name}: ${line}`),

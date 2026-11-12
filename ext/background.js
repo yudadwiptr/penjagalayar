@@ -5,12 +5,25 @@
 
 const CORE = ['js/core/util.js', 'js/core/audio.js', 'assets/suara/daftar.js', 'js/core/rig.js', 'js/core/stage.js'];
 const TAIL = ['js/core/guard.js', 'ext/content.js'];
-const DEFAULTS = { pet: 'oyen', mins: 5, every: 0, sound: true };
+const DEFAULTS = { pet: 'oyen', mins: 5, every: 0, sound: true, pinHash: '' };
 const A_NEXT = 'pawang-next', A_EXPIRE = 'pawang-expire', A_BADGE = 'pawang-badge';
 
+/* rumus yang sama dengan PI.util.pinHash di js/core/util.js */
+async function hashPin(pin) {
+  const p = String(pin || '').trim();
+  if (!p) return '';
+  const d = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('pawang-layar:' + p));
+  return [...new Uint8Array(d)].map((x) => x.toString(16).padStart(2, '0')).join('');
+}
 async function getSettings() {
   const { settings } = await chrome.storage.local.get('settings');
-  return { ...DEFAULTS, ...(settings || {}) };
+  const s = { ...DEFAULTS, ...(settings || {}) };
+  if ('pin' in s) {   // versi lama menyimpan sandi apa adanya: ganti dengan hash
+    if (s.pin && !s.pinHash) s.pinHash = await hashPin(s.pin);
+    delete s.pin;
+    await chrome.storage.local.set({ settings: s });
+  }
+  return s;
 }
 async function getSession() {
   const { session } = await chrome.storage.local.get('session');
@@ -21,7 +34,7 @@ async function getSession() {
 async function inject(tabId, sess, escaped) {
   try {
     const [probe] = await chrome.scripting.executeScript({
-      target: { tabId },
+      target: { tabId }, injectImmediately: true,
       func: (pet) => ({ pi: !!window.PI, ov: !!window.PawangOverlay, ch: !!(window.PI && PI.chars && PI.chars[pet]) }),
       args: [sess.pet]
     });
@@ -30,11 +43,11 @@ async function inject(tabId, sess, escaped) {
     if (!st.pi) files.push(...CORE);
     if (!st.ch) files.push(`js/characters/${sess.pet}.js`);
     if (!st.ov) files.push(...TAIL);
-    if (files.length) await chrome.scripting.executeScript({ target: { tabId }, files });
+    if (files.length) await chrome.scripting.executeScript({ target: { tabId }, files, injectImmediately: true });
     await chrome.scripting.executeScript({
-      target: { tabId },
+      target: { tabId }, injectImmediately: true,
       func: (cfg) => window.PawangOverlay && window.PawangOverlay.show(cfg),
-      args: [{ pet: sess.pet, startAt: sess.startAt, endAt: sess.endAt, sound: sess.sound, escaped: !!escaped }]
+      args: [{ pet: sess.pet, startAt: sess.startAt, endAt: sess.endAt, sound: sess.sound, pinHash: sess.pinHash || '', escaped: !!escaped }]
     });
     return true;
   } catch (e) {
@@ -51,7 +64,7 @@ async function hideAll(exceptTabId) {
 /* ---------- sesi istirahat ---------- */
 async function startBreak() {
   const s = await getSettings(), now = Date.now();
-  const sess = { active: true, pet: s.pet, mins: s.mins, sound: s.sound, startAt: now, endAt: now + s.mins * 60000 };
+  const sess = { active: true, pet: s.pet, mins: s.mins, sound: s.sound, pinHash: s.pinHash || '', startAt: now, endAt: now + s.mins * 60000 };
   await chrome.storage.local.set({ session: sess, nextAt: null });
   await chrome.alarms.clear(A_NEXT);
   chrome.alarms.create(A_EXPIRE, { when: sess.endAt + 90000 });
@@ -112,9 +125,11 @@ chrome.tabs.onActivated.addListener(async ({ tabId }) => {
   if (sess && Date.now() < sess.endAt) inject(tabId, sess, true);
 });
 chrome.tabs.onUpdated.addListener(async (tabId, info, tab) => {
-  if (info.status !== 'complete' || !tab.active) return;
+  /* sisipkan sejak halaman mulai dimuat supaya tidak ada jeda yang bisa dipakai;
+     'complete' mengulang sekali lagi kalau sisipan pertama kena dokumen lama */
+  if ((info.status !== 'loading' && info.status !== 'complete') || !tab.active) return;
   const sess = await getSession();
-  if (sess && Date.now() < sess.endAt) inject(tabId, sess, true);
+  if (sess && Date.now() < sess.endAt) inject(tabId, sess, info.status === 'loading');
 });
 
 chrome.runtime.onMessage.addListener((msg, sender, reply) => {

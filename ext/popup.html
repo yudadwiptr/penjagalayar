@@ -85,42 +85,88 @@
     padding: 5px 10px; font-weight: 600; font-size: 12px;
   }
   .chip[aria-pressed="true"] { background: var(--ink); color: var(--bg) }
+  /* ---------- sandi ---------- */
+  .ico { width: 15px; height: 15px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round }
+  .lock {
+    display: flex; align-items: center; gap: 6px;
+    background: var(--card); border: 1.5px solid var(--line); border-radius: 99px;
+    padding: 0 13px; font-weight: 600; font-size: 12.5px; color: var(--muted);
+  }
+  .lock:hover { color: var(--ink) }
+  .lock .i-on { display: none }
+  .lock[aria-pressed="true"] {
+    color: var(--go); border-color: var(--go); background: color-mix(in srgb, var(--go) 12%, var(--card));
+  }
+  .lock[aria-pressed="true"] .i-on { display: block }
+  .lock[aria-pressed="true"] .i-off { display: none }
 
-  .actions { display: flex; gap: 8px; margin-top: 12px }
+  .pin-row { display: flex; gap: 6px; align-items: stretch; margin-top: 10px; height: 40px }
+  .pin-row[hidden], .actions[hidden] { display: none }
+  .pin-field {
+    flex: 1; min-width: 0; display: flex; align-items: center; gap: 7px;
+    background: var(--card); border: 1.5px solid var(--line); border-radius: 99px;
+    padding: 0 6px 0 13px; color: var(--muted); cursor: text;
+  }
+  .pin-field:focus-within { border-color: var(--go); color: var(--go) }
+  .pin-in {
+    flex: 1; min-width: 0; background: transparent; border: 0; outline: none; padding: 0;
+    color: var(--ink); font: inherit; font-size: 13px; user-select: text;
+    -webkit-text-security: disc;
+  }
+  .pin-in.reveal { -webkit-text-security: none }
+  .pin-in::placeholder { color: var(--muted); -webkit-text-security: none }
+  .pin-ico-btn {
+    display: grid; place-items: center; width: 28px; height: 28px; flex: none;
+    background: transparent; border: 0; border-radius: 50%; color: var(--muted);
+  }
+  .pin-ico-btn:hover { background: color-mix(in srgb, var(--ink) 9%, transparent); color: var(--ink) }
+  .pin-ico-btn[hidden] { display: none }
+  .pin-ico-btn .i-on { display: none }
+  .pin-ico-btn[aria-pressed="true"] .i-on { display: block }
+  .pin-ico-btn[aria-pressed="true"] .i-off { display: none }
+  .pin-ok {
+    background: var(--go); color: var(--go-ink); border: 0; border-radius: 99px;
+    padding: 0 16px; font-weight: 700; font-size: 13px;
+  }
+  .pin-ok.ghost { background: var(--card); color: var(--ink); border: 1.5px solid var(--line); font-weight: 600 }
+  .pin-row.err .pin-field { border-color: #E5484D; color: #E5484D; animation: nudge .35s }
+  @keyframes nudge { 20%, 60% { transform: translateX(-5px) } 40%, 80% { transform: translateX(5px) } }
+  @media (prefers-reduced-motion: reduce) { .pin-row.err .pin-field { animation: none } }
+  .status-box .pin-row { margin: 0; flex: 1; height: 34px }
+  .status-box.asking .status-info, .status-box.asking .status-btns { display: none }
+
+  .actions { display: flex; gap: 6px; margin-top: 10px; height: 40px }
   .go {
     flex: 1; background: var(--go); color: var(--go-ink); border: 0; border-radius: 99px;
-    padding: 10px 16px; font-weight: 700; font-size: 14px;
+    padding: 0 16px; font-weight: 700; font-size: 14px; white-space: nowrap;
   }
   .go:hover { filter: brightness(1.05) }
   .toggle {
     background: var(--card); border: 1.5px solid var(--line); border-radius: 99px;
-    padding: 10px 13px; font-weight: 600; font-size: 12.5px;
+    width: 40px; padding: 0; flex: none; display: grid; place-items: center;
   }
-  .toggle[aria-pressed="false"] { opacity: .6 }
+  .toggle .ico { width: 17px; height: 17px }
+  .toggle:hover { border-color: var(--muted) }
+  .toggle .i-off { display: none }
+  .toggle[aria-pressed="false"] { color: var(--muted) }
+  .toggle[aria-pressed="false"] .i-off { display: block }
+  .toggle[aria-pressed="false"] .i-on { display: none }
+  .pin-x {
+    width: 40px; flex: none; display: grid; place-items: center; padding: 0;
+    background: var(--card); border: 1.5px solid var(--line); border-radius: 99px; color: var(--muted);
+  }
+  .pin-x:hover { color: var(--ink); border-color: var(--muted) }
+  .pop-foot {
+    display: flex; justify-content: center; align-items: center;
+    margin-top: 9px; padding-top: 7px; border-top: 1px solid var(--line);
+    font-size: 11px; color: var(--muted);
+  }
+  .pop-foot a { color: var(--ink); font-weight: 600; text-decoration: none }
+  .pop-foot a:hover { color: var(--go); text-decoration: underline }
 </style>
 
-<script src="../js/core/util.js" defer></script>
-<script src="../js/core/audio.js" defer></script>
-<script src="../assets/suara/daftar.js" defer></script>
-<script src="../js/core/rig.js" defer></script>
-<script src="../js/core/stage.js" defer></script>
-<script src="../js/characters/oyen.js" defer></script>
-<script src="../js/characters/mochi.js" defer></script>
-<script src="../js/characters/kapi.js" defer></script>
-<script src="../js/characters/bambu.js" defer></script>
-<script src="../js/characters/honk.js" defer></script>
-<script src="../js/characters/utan.js" defer></script>
-<script src="../js/characters/komo.js" defer></script>
-<script src="../js/characters/uhu.js" defer></script>
-<script src="../js/characters/jago.js" defer></script>
-<script src="../js/characters/bangkong.js" defer></script>
-<script src="../js/characters/prabowo.js" defer></script>
-<script src="../js/characters/jokowi.js" defer></script>
-<script src="../js/characters/gibran.js" defer></script>
-<script src="../js/characters/megawati.js" defer></script>
-<script src="../js/characters/anies.js" defer></script>
-<script src="../js/characters/ganjar.js" defer></script>
-<script src="../js/characters/bahlil.js" defer></script>
+<!-- inti + semua karakter: daftarnya ada di js/pawang.js -->
+<script src="../js/pawang.js"></script>
 <script src="popup.js" defer></script>
 </head>
 <body>
@@ -147,6 +193,14 @@
     <button type="button" class="btn-sm primary" id="stNow" hidden>Sekarang</button>
     <button type="button" class="btn-sm" id="stStop">Hentikan</button>
   </div>
+  <form class="pin-row" id="unlock" hidden>
+    <label class="pin-field">
+      <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+      <input class="pin-in" id="unlockIn" type="text" placeholder="Sandi untuk mengakhiri" aria-label="Sandi untuk mengakhiri" maxlength="32" autocomplete="off" spellcheck="false">
+    </label>
+    <button type="submit" class="pin-ok">Buka</button>
+    <button type="button" class="pin-ok ghost" id="unlockCancel">Batal</button>
+  </form>
 </div>
 
 <div class="sec-label"><span>Pilih Penjaga</span><span id="pTag"></span></div>
@@ -158,9 +212,36 @@
 <div class="sec-label"><span>Jadwal</span></div>
 <div class="chips" id="when"></div>
 
-<div class="actions">
+<div class="actions" id="actions">
   <button class="go" id="go" type="button">Mulai jaga</button>
-  <button class="toggle" id="sound" type="button" aria-pressed="true">Suara</button>
+  <button class="lock" id="lockBtn" type="button" aria-pressed="false" title="Kunci dengan sandi: tanpa sandi ini, istirahat tidak bisa dihentikan lebih awal">
+    <svg class="ico i-off" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2.5"/><path d="M8 11V8a4 4 0 0 1 7.5-2"/></svg>
+    <svg class="ico i-on" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+    <span id="lockLbl">Sandi</span>
+  </button>
+  <button class="toggle" id="sound" type="button" aria-pressed="true" aria-label="Suara" title="Suara nyala (klik untuk mematikan)">
+    <svg class="ico i-on" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5z"/><path d="M15.5 9a4.2 4.2 0 0 1 0 6M18.2 6.3a8 8 0 0 1 0 11.4"/></svg>
+    <svg class="ico i-off" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5z"/><path d="M16 9.5l5 5M21 9.5l-5 5"/></svg>
+  </button>
+</div>
+
+<form class="pin-row" id="pinEdit" hidden>
+  <label class="pin-field">
+    <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+    <input class="pin-in" id="pin" type="text" placeholder="Sandi untuk berhenti" aria-label="Sandi untuk berhenti lebih awal" maxlength="32" autocomplete="off" spellcheck="false">
+    <button class="pin-ico-btn" id="pinEye" type="button" aria-pressed="false" aria-label="Tampilkan sandi" title="Tampilkan sandi">
+      <svg class="ico i-off" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+      <svg class="ico i-on" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/><path d="M4 4l16 16"/></svg>
+    </button>
+  </label>
+  <button type="submit" class="pin-ok" id="pinOk">Simpan</button>
+  <button class="pin-x" id="pinBack" type="button" aria-label="Batal, kembali" title="Batal, kembali">
+    <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+  </button>
+</form>
+
+<div class="pop-foot">
+  <span>Built by <a href="https://yumastudio.digital/" target="_blank" rel="noopener noreferrer">yumastudio.digital</a></span>
 </div>
 
 </body>

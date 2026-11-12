@@ -38,6 +38,41 @@ window.PI = (() => {
   </g>`;
   }
 
+  /* SHA-256 murni JS (sinkron, jalan di file://, http://, dan content script). Dipakai untuk sandi:
+     yang disimpan hanya hash-nya, jadi sandi tidak bisa dibaca dari penyimpanan. */
+  const SHA = (() => {
+    const K = [], H0 = [], frac = (x) => ((x - Math.floor(x)) * 4294967296) | 0;
+    for (let n = 2, i = 0; i < 64; n++) {
+      let prime = true;
+      for (let d = 2; d * d <= n; d++) if (n % d === 0) { prime = false; break; }
+      if (prime) { if (i < 8) H0[i] = frac(Math.pow(n, 1 / 2)); K[i++] = frac(Math.pow(n, 1 / 3)); }
+    }
+    const rr = (x, n) => (x >>> n) | (x << (32 - n));
+    return (str) => {
+      const bytes = new TextEncoder().encode(str), l = bytes.length, total = ((l + 72) >> 6) << 6;
+      const m = new Uint8Array(total); m.set(bytes); m[l] = 0x80;
+      const dv = new DataView(m.buffer); dv.setUint32(total - 4, l * 8);
+      const w = new Int32Array(64), h = H0.slice();
+      for (let o = 0; o < total; o += 64) {
+        for (let t = 0; t < 16; t++) w[t] = dv.getInt32(o + t * 4);
+        for (let t = 16; t < 64; t++) {
+          const a = w[t - 15], b = w[t - 2];
+          w[t] = (w[t - 16] + (rr(a, 7) ^ rr(a, 18) ^ (a >>> 3)) + w[t - 7] + (rr(b, 17) ^ rr(b, 19) ^ (b >>> 10))) | 0;
+        }
+        let [a, b, c, d, e, f, g, hh] = h;
+        for (let t = 0; t < 64; t++) {
+          const t1 = (hh + (rr(e, 6) ^ rr(e, 11) ^ rr(e, 25)) + ((e & f) ^ (~e & g)) + K[t] + w[t]) | 0;
+          const t2 = ((rr(a, 2) ^ rr(a, 13) ^ rr(a, 22)) + ((a & b) ^ (a & c) ^ (b & c))) | 0;
+          hh = g; g = f; f = e; e = (d + t1) | 0; d = c; c = b; b = a; a = (t1 + t2) | 0;
+        }
+        [a, b, c, d, e, f, g, hh].forEach((v, i) => { h[i] = (h[i] + v) | 0; });
+      }
+      return h.map((x) => (x >>> 0).toString(16).padStart(8, '0')).join('');
+    };
+  })();
+  /* hash sandi ('' kalau sandinya kosong). ext/background.js memakai rumus yang sama lewat crypto.subtle. */
+  const pinHash = (pin) => { const p = String(pin || '').trim(); return p ? SHA('pawang-layar:' + p) : ''; };
+
   /* Registri karakter. Urutan pendaftaran = urutan di layar. */
   const chars = {}, order = [];
   function register(key, def) {
@@ -47,5 +82,5 @@ window.PI = (() => {
     order.push(key);
   }
 
-  return { RM, chars, order, register, util: { clamp, rand, pick, f2, $, setT, fmt, easeOutBack, M, eye } };
+  return { RM, chars, order, register, util: { clamp, rand, pick, f2, $, setT, fmt, easeOutBack, M, eye, sha256: SHA, pinHash } };
 })();

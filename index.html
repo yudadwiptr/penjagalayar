@@ -12,32 +12,8 @@
 <link rel="stylesheet" href="css/style.css">
 <link rel="stylesheet" href="css/guard.css">
 
-<!-- inti -->
-<script src="js/core/util.js" defer></script>
-<script src="js/core/audio.js" defer></script>
-<script src="assets/suara/daftar.js" defer></script>
-<script src="js/core/rig.js" defer></script>
-<script src="js/core/stage.js" defer></script>
-<!-- karakter: urutan di sini = urutan di layar -->
-<script src="js/characters/oyen.js" defer></script>
-<script src="js/characters/mochi.js" defer></script>
-<script src="js/characters/kapi.js" defer></script>
-<script src="js/characters/bambu.js" defer></script>
-<script src="js/characters/honk.js" defer></script>
-<script src="js/characters/utan.js" defer></script>
-<script src="js/characters/komo.js" defer></script>
-<script src="js/characters/uhu.js" defer></script>
-<script src="js/characters/jago.js" defer></script>
-<script src="js/characters/bangkong.js" defer></script>
-<script src="js/characters/prabowo.js" defer></script>
-<script src="js/characters/jokowi.js" defer></script>
-<script src="js/characters/gibran.js" defer></script>
-<script src="js/characters/megawati.js" defer></script>
-<script src="js/characters/anies.js" defer></script>
-<script src="js/characters/ganjar.js" defer></script>
-<script src="js/characters/bahlil.js" defer></script>
-<!-- aplikasi -->
-<script src="js/core/guard.js" defer></script>
+<!-- inti + semua karakter: daftarnya ada di js/pawang.js -->
+<script src="js/pawang.js"></script>
 <script src="js/app.js" defer></script>
 </head>
 <body>
@@ -79,6 +55,10 @@
       <p class="label"><span>03</span>Kapan dia datang?</p>
       <div class="chips" id="when"></div>
     </div>
+    <div class="group">
+      <p class="label"><span>04</span>Kunci dengan sandi <small style="font-weight:400;color:var(--muted)">(opsional)</small></p>
+      <input class="pin-input" id="pin" type="password" placeholder="Kosongkan jika tanpa sandi…" autocomplete="off">
+    </div>
     <div class="actions">
       <button class="go" id="go" type="button">Mulai jaga</button>
       <button class="toggle" id="sound" type="button" aria-pressed="true">Suara <i></i></button>
@@ -91,6 +71,11 @@
       <div><b>Makin galak</b><p>Pindah tab, tekan tombol, atau dorong kursor ke atas layar. Teguran pertama halus, berikutnya tidak.</p></div>
       <div><b>Bisa dielus</b><p>Usap kepalanya dengan kursor. Untuk berhenti lebih awal, tahan tombol keluar tiga detik.</p></div>
     </div>
+
+    <footer class="site-foot">
+      <p class="built-by">Built by <a href="https://yumastudio.digital/" target="_blank" rel="noopener noreferrer">yumastudio.digital</a></p>
+      <a class="jajan-btn" href="https://saweria.co/yudadwiptr" target="_blank" rel="noopener noreferrer">Request pawang?</a>
+    </footer>
   </section>
 </main>
 

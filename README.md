@@ -36,6 +36,7 @@ Semua karakter adalah ilustrasi vektor yang dianimasikan langsung di browser. Su
 | `anies.js` | Anies | Tokoh (parodi) |
 | `ganjar.js` | Ganjar | Tokoh (parodi) |
 | `bahlil.js` | Bahlil | Tokoh (parodi) |
+| `kdm.js` | KDM | Tokoh (parodi) |
 
 ## Menjalankan
 
@@ -72,6 +73,7 @@ css/style.css         gaya halaman utama
 css/guard.css         gaya mode jaga & varian transparan extension
 assets/favicon.svg    ikon vektor & ikon PNG extension (icon-16..128.png)
 assets/suara/         rekaman suara MP3 tiap karakter + daftar.js
+js/pawang.js          pemuat tunggal: daftar script inti + daftar karakter
 js/core/util.js       namespace PI, helper, eye(), registri karakter
 js/core/audio.js      suara sintetis & pemutar MP3 (PI.SFX)
 js/core/rig.js        rig animasi: suasana hati, mata, aksi (PI.Rig)
@@ -106,7 +108,7 @@ Semua script dimuat sebagai `<script defer>` biasa (bukan ES module), supaya `in
    });
    ```
 
-2. Tambahkan `<script src="js/characters/kuncinya.js" defer></script>` di `index.html` dan `galeri.html`, sebelum `app.js`.
+2. Tambahkan `'kuncinya'` ke daftar `KARAKTER` di `js/pawang.js`. Satu daftar itu dipakai website, galeri, dan extension.
 
 ### Bagian SVG yang dikenali rig
 

@@ -17,6 +17,7 @@
     startAt: cfg.startAt,
     endAt: cfg.endAt,
     sound: cfg.sound,
+    pinHash: cfg.pinHash || '',
     setTitle: true,
     onSound: (on) => chrome.runtime.sendMessage({ type: 'sound', on }).catch(() => {}),
     onLeave: (reason, stats) => {
